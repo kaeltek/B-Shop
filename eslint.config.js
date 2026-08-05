@@ -20,7 +20,7 @@ export default defineConfig(
 		rules: {
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
-			"no-undef": 'off'
+			'no-undef': 'off'
 		}
 	},
 	{
@@ -34,8 +34,17 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// `resolve()` is typed against the generated `Pathname` union, so it
+			// cannot accept the href of a nav item that came from the typed
+			// content module today or from the `categories` table after P2 —
+			// data-driven links have no compile-time route to resolve against.
+			// The rule's real value is catching a missing base path, and this app
+			// deploys at a domain root on Vercel with `base` empty.
+			//
+			// Programmatic navigation stays checked: those call sites are always
+			// literal, so `goto` / `pushState` / `replaceState` keep the rule.
+			'svelte/no-navigation-without-resolve': ['error', { ignoreLinks: true }]
+		}
 	}
 );

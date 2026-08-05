@@ -1,0 +1,207 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* ---------------------------------------------------------------------------
+   Fonts — self-hosted, latin subset only, no third-party CDN request (GDPR).
+   Files live in /static/fonts and are served from our own origin.
+   Both are variable fonts: one file covers the whole weight axis.
+   Licences: SIL OFL 1.1, see static/fonts/*-LICENSE.txt
+--------------------------------------------------------------------------- */
+
+@font-face {
+	font-family: 'Playfair Display';
+	font-style: normal;
+	font-weight: 400 900;
+	font-display: swap;
+	src: url('/fonts/playfair-display-latin-wght-normal.woff2') format('woff2');
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Source Sans 3';
+	font-style: normal;
+	font-weight: 200 900;
+	font-display: swap;
+	src: url('/fonts/source-sans-3-latin-wght-normal.woff2') format('woff2');
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+--------------------------------------------------------------------------- */
+
+@theme {
+	/* Palette. `accent` is the brand amber and is used for fills, rules and
+	   decoration. It fails WCAG AA as *text* on both light surfaces, so two
+	   text-safe siblings exist — see the contrast table in ARCHITECTURE.md. */
+	--color-ink: #211c18;
+	--color-cream: #f7f2e9;
+	--color-sand: #ede2d1;
+	--color-accent: #c08a3e;
+	--color-accent-strong: #855a20;
+	--color-accent-soft: #d6a458;
+	--color-olive: #3a3d2e;
+	--color-muted: #6b6058;
+
+	/* Families */
+	--font-display: 'Playfair Display', ui-serif, Georgia, serif;
+	--font-body: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+
+	/* Radii — generous and slightly organic; buttons are full-pill */
+	--radius-image: 1rem; /* 16px */
+	--radius-card: 1.25rem; /* 20px */
+	--radius-organic: 1.5rem; /* 24px */
+	--radius-pill: 999px;
+
+	/* Layout */
+	--container-content: 80rem; /* 1280px */
+
+	/* Motion */
+	--ease-card: cubic-bezier(0.2, 0, 0.2, 1);
+	--ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+@layer base {
+	:root {
+		--focus-ring: var(--color-accent-strong);
+		--accent-text: var(--color-accent-strong);
+		/* The header is fixed so it can sit *over* the hero image while
+		   transparent. Everything below it is offset by this instead. */
+		--header-h: 4.5rem;
+		scroll-behavior: smooth;
+		/* Anchor targets clear the fixed header. */
+		scroll-padding-top: var(--header-h);
+	}
+
+	/* Dark sections (footer, catering CTA) swap the accent and focus colours so
+	   both stay above 4.5:1 against olive. Plain custom-property inheritance,
+	   so components never need to know which surface they landed on. */
+	.on-dark {
+		--focus-ring: var(--color-accent-soft);
+		--accent-text: var(--color-accent-soft);
+	}
+
+	body {
+		background-color: var(--color-cream);
+		color: var(--color-muted);
+		font-family: var(--font-body);
+		font-size: clamp(1.0625rem, 0.25vw + 1rem, 1.125rem); /* 17 → 18px */
+		line-height: 1.7;
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		color: var(--color-ink);
+		font-family: var(--font-display);
+	}
+
+	/* Never the browser default. */
+	:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 3px;
+		border-radius: 2px;
+	}
+
+	::selection {
+		background-color: var(--color-accent);
+		color: var(--color-ink);
+	}
+
+	/* §7.3 / §7.4 — one global kill-switch for motion. Individual components
+	   additionally check the query in JS so they can render final state
+	   directly rather than animating imperceptibly fast. */
+	@media (prefers-reduced-motion: reduce) {
+		:root {
+			scroll-behavior: auto;
+		}
+
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Composable utilities
+--------------------------------------------------------------------------- */
+
+/* 1280px max, 24px gutter, 16px on mobile (§7.1). */
+@utility container-page {
+	width: 100%;
+	max-width: var(--container-content);
+	margin-inline: auto;
+	padding-inline: 1rem;
+
+	@media (width >= 40rem) {
+		padding-inline: 1.5rem;
+	}
+}
+
+/* Standard section rhythm (§7.1). */
+@utility section-y {
+	padding-block: clamp(5rem, 10vw, 9rem);
+}
+
+/* Display type: size is composed separately (e.g. `display text-5xl`). */
+@utility display {
+	font-family: var(--font-display);
+	font-weight: 500;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+	color: var(--color-ink);
+	text-wrap: balance;
+}
+
+/* Scroll reveal — 12px rise + fade, 500ms (§7.3). The action adds
+   `data-revealed` when the element enters the viewport. Under reduced motion
+   the action stamps the attribute immediately and this transition is
+   neutralised by the base-layer kill-switch above. */
+@utility reveal {
+	opacity: 0;
+	transform: translateY(12px);
+	transition:
+		opacity 500ms var(--ease-reveal),
+		transform 500ms var(--ease-reveal);
+	transition-delay: var(--reveal-delay, 0ms);
+
+	&[data-revealed] {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Visually hidden until focused — skip link (§7.4). */
+@utility skip-link {
+	position: absolute;
+	left: 1rem;
+	top: -100%;
+	z-index: 100;
+	border-radius: var(--radius-pill);
+	background-color: var(--color-ink);
+	padding: 0.75rem 1.5rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--color-cream);
+	transition: top 200ms var(--ease-card);
+
+	&:focus-visible {
+		top: 1rem;
+	}
+}

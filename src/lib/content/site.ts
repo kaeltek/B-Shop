@@ -60,9 +60,10 @@ export const site: SiteContent = {
 	],
 
 	contact: {
-		addressLines: ['14 Kilnwright Lane', 'Stokes Croft', 'Bristol BS1 3PR'],
-		phone: '+441179000000',
-		phoneDisplay: '+44 117 900 0000',
+		// Eurozone, to match the schema's default currency of EUR (§5).
+		addressLines: ['14 Kilnwright Lane', 'Stoneybatter', 'Dublin D07 F5P2'],
+		phone: '+35315550100',
+		phoneDisplay: '+353 1 555 0100',
 		email: 'hello@oliveandember.test',
 		hours: ['Tue – Thu  ·  8:00 — 22:00', 'Fri – Sat  ·  8:00 — 23:30', 'Sun  ·  9:00 — 16:00']
 	}

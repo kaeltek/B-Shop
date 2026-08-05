@@ -1,0 +1,17 @@
+# Supabase CLI configuration.
+#
+# Deliberately minimal: this project targets a hosted Supabase project, not a
+# local Docker stack. Link it once with
+#
+#   npx supabase login
+#   npx supabase link --project-ref <your-project-ref>
+#
+# then push the migrations in ./migrations with `npm run db:push` and generate
+# row types with `npm run db:types`.
+
+project_id = "b-shop"
+
+[db]
+# Match the Postgres major version of the hosted project so `db push` and
+# `db diff` compare against the same engine.
+major_version = 17

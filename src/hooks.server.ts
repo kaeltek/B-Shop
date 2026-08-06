@@ -1,20 +1,26 @@
-import type { Handle } from '@sveltejs/kit';
+import { error, type Handle } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createRequestClient, isSupabaseConfigured } from '$lib/server/supabase';
+import { GATED, getSettings } from '$lib/server/db/settings';
+import type { CommerceSettings } from '$lib/types/catalogue';
 
 /**
- * Attaches a per-request Supabase client and a session helper to `locals`.
+ * Paths that only exist when commerce is on (§3.3).
  *
- * The client is built lazily. Constructing it eagerly would throw on every
- * request while the project is still unconfigured — including requests to pages
- * that never touch the database. Deferring construction to first access keeps
- * those pages working and puts the error where the cause actually is.
- *
- * The commerce-gate route guard (§3.3) lands here in P4.
+ * Matching is prefix-based on a path segment boundary, so `/cart` covers
+ * `/cart/add` but `/carts-of-history` is left alone.
  */
+const COMMERCE_ROUTES = ['/cart', '/checkout', '/wishlist', '/api/cart', '/api/checkout'];
+
+function isCommercePath(pathname: string): boolean {
+	return COMMERCE_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	let client: SupabaseClient | undefined;
 
+	// Built lazily: constructing it eagerly would throw on every request while
+	// Supabase is unconfigured, including on pages that never query.
 	Object.defineProperty(event.locals, 'supabase', {
 		configurable: true,
 		enumerable: true,
@@ -25,22 +31,37 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 
 	/**
-	 * Returns a verified user, or nulls.
+	 * Settings for this request, read at most once.
 	 *
-	 * `getSession()` alone is not trustworthy on the server: it decodes the
-	 * cookie without checking the signature, so a forged cookie would pass.
-	 * `getUser()` validates against the auth server, and the session is only
-	 * returned once that has succeeded.
+	 * Memoised per request rather than cached in module scope (§3.2): a stale
+	 * gate after an admin toggles it is a correctness bug, but re-reading it
+	 * three times in one request is just waste. The hook and the layout load
+	 * share this promise.
+	 */
+	let commercePromise: Promise<CommerceSettings> | undefined;
+	event.locals.getCommerce = () => {
+		commercePromise ??= isSupabaseConfigured()
+			? getSettings(event.locals.supabase)
+			: Promise.resolve(GATED);
+		return commercePromise;
+	};
+
+	/**
+	 * Verified user, or nulls.
+	 *
+	 * `getSession()` alone is not trustworthy server-side: it decodes the cookie
+	 * without verifying the signature, so a forged cookie would pass.
+	 * `getUser()` validates against the auth server first.
 	 */
 	event.locals.safeGetSession = async () => {
 		if (!isSupabaseConfigured()) return { session: null, user: null };
 
 		const {
 			data: { user },
-			error
+			error: userError
 		} = await event.locals.supabase.auth.getUser();
 
-		if (error || !user) return { session: null, user: null };
+		if (userError || !user) return { session: null, user: null };
 
 		const {
 			data: { session }
@@ -49,9 +70,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return { session, user };
 	};
 
+	// ---------------------------------------------------------------------
+	// The gate (§3.3)
+	// ---------------------------------------------------------------------
+	if (isCommercePath(event.url.pathname)) {
+		const commerce = await event.locals.getCommerce();
+
+		if (!commerce.enabled) {
+			const isApi = event.url.pathname.startsWith('/api/');
+			const isMutation = event.request.method !== 'GET' && event.request.method !== 'HEAD';
+
+			// 403 for anything asking to *do* something — API calls and form
+			// posts alike. §3.5 requires POST /cart/add to answer 403, and a
+			// mutation deserves an explicit refusal rather than a pretence that
+			// the endpoint was never there.
+			if (isApi || isMutation) error(403, 'Commerce is currently disabled.');
+
+			// 404 for page navigation, so gated mode does not advertise a hidden
+			// shop to anyone probing URLs.
+			error(404, 'Not found');
+		}
+	}
+
 	return resolve(event, {
-		// Supabase sets these on some responses; SvelteKit strips unknown headers
-		// from serialised load responses unless they are allow-listed.
 		filterSerializedResponseHeaders: (name) =>
 			name === 'content-range' || name === 'x-supabase-api-version'
 	});

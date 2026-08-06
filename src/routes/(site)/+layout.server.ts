@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { GATED, getSettings } from '$lib/server/db/settings';
+import { GATED } from '$lib/server/db/settings';
 import { listCategories } from '$lib/server/db/categories';
 import { isSupabaseConfigured } from '$lib/server/supabase';
 import { site } from '$lib/content/site';
@@ -50,8 +50,9 @@ export const load: LayoutServerLoad = async ({ locals, depends, setHeaders }) =>
 	const supabase = locals.supabase;
 
 	const [commerce, categories] = await Promise.all([
-		// Fails closed internally — never throws.
-		getSettings(supabase),
+		// Shares the hook's memoised read, so the gate costs one query per
+		// request no matter how many places consult it. Fails closed internally.
+		locals.getCommerce(),
 		listCategories(supabase).catch((cause) => {
 			// Navigation degrades to the static list rather than 500-ing the site.
 			console.error('[layout] category load failed:', cause);

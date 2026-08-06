@@ -23,7 +23,12 @@
 		/** Overlay the header on a hero until the user scrolls. */
 		transparent?: boolean;
 		onsearch?: () => void;
-		commerce?: { enabled: boolean; count: number; subtotal: string };
+		/**
+		 * Cart cluster. Rendered only when `enabled` — §3.4 requires the icon and
+		 * subtotal to be absent while gated, not greyed out. Count and subtotal
+		 * arrive with the cart itself in P6.
+		 */
+		commerce?: { enabled: boolean; count?: number; subtotal?: string };
 	}
 
 	let {
@@ -80,12 +85,14 @@
 				<a href="/cart" class="cart">
 					<span class="cart-icon">
 						<Icon name="bag" />
-						{#if commerce.count > 0}
+						{#if (commerce.count ?? 0) > 0}
 							<span class="cart-count">{commerce.count}</span>
 						{/if}
 					</span>
-					<span class="cart-subtotal">{commerce.subtotal}</span>
-					<span class="sr-only">items in cart</span>
+					{#if commerce.subtotal}
+						<span class="cart-subtotal">{commerce.subtotal}</span>
+					{/if}
+					<span class="sr-only">Cart, {commerce.count ?? 0} items</span>
 				</a>
 			{/if}
 

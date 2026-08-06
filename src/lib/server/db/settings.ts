@@ -14,7 +14,7 @@ import type { SiteSettingsRow } from './rows';
 const SELECT = 'commerce_enabled, show_prices_when_gated, gated_notice';
 
 /** Fails closed: any error yields a gated site rather than an open till. */
-const GATED: CommerceSettings = { enabled: false, showPrices: false, notice: null };
+export const GATED: CommerceSettings = { enabled: false, showPrices: false, notice: null };
 
 function toCommerceSettings(row: SiteSettingsRow): CommerceSettings {
 	return {

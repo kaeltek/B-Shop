@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { LayoutProps } from './$types';
 	import { page } from '$app/state';
 	import { site } from '$lib/content/site';
 	import Header from '$lib/components/layout/Header.svelte';
@@ -9,12 +9,11 @@
 	/**
 	 * Public site chrome.
 	 *
-	 * Nav items come from the typed content module for now. When categories
-	 * land in P2 a `+layout.server.ts` here will merge the admin-managed
-	 * category list into the `/shop` entry's children and pass the result
-	 * down — `Header` and `Nav` already take items as a prop for exactly that.
+	 * Nav arrives from `+layout.server.ts` with admin-managed categories already
+	 * merged into the `/shop` entry, so neither this file nor `Nav` knows where
+	 * any of it came from.
 	 */
-	let { children }: { children: Snippet } = $props();
+	let { data, children }: LayoutProps = $props();
 
 	// The homepage opens on a full-bleed hero, so the header overlays it until
 	// the first scroll. Every other route starts solid.
@@ -26,11 +25,18 @@
 <Header
 	brandName={site.brandName}
 	brandTagline={site.brandTagline}
-	items={site.nav}
+	items={data.nav}
 	contact={site.contact}
 	social={site.social}
 	transparent={transparentHeader}
+	commerce={{ enabled: data.commerce.enabled }}
 />
+
+{#if !data.commerce.enabled && data.commerce.notice}
+	<!-- Optional gated-mode banner (§3.1). Not an error and not an apology —
+	     it only appears when an admin has written copy for it. -->
+	<p class="notice">{data.commerce.notice}</p>
+{/if}
 
 <main id="main" tabindex="-1">
 	{@render children()}
@@ -57,5 +63,21 @@
 	/* `tabindex="-1"` makes the skip link work; it must not draw a ring. */
 	main:focus {
 		outline: none;
+	}
+
+	.notice {
+		position: relative;
+		z-index: 40;
+		margin-top: var(--header-h);
+		background-color: var(--color-sand);
+		padding: 0.85rem 1.5rem;
+		text-align: center;
+		font-size: 0.9375rem;
+		color: var(--color-ink);
+	}
+
+	/* When the banner is present it already accounts for the header. */
+	.notice + main {
+		padding-top: 0;
 	}
 </style>

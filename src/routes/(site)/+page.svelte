@@ -1,18 +1,29 @@
 <script lang="ts">
+	import type { PageProps } from './$types';
 	import { site } from '$lib/content/site';
-	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import { reveal } from '$lib/actions/reveal';
+	import { home } from '$lib/content/home';
+
+	import Hero from '$lib/components/home/Hero.svelte';
+	import Intro from '$lib/components/home/Intro.svelte';
+	import CounterStrip from '$lib/components/home/CounterStrip.svelte';
+	import FeaturedProducts from '$lib/components/home/FeaturedProducts.svelte';
+	import Features from '$lib/components/home/Features.svelte';
+	import SupplierLogos from '$lib/components/home/SupplierLogos.svelte';
+	import CateringCta from '$lib/components/home/CateringCta.svelte';
+	import GallerySection from '$lib/components/home/GallerySection.svelte';
+	import Newsletter from '$lib/components/home/Newsletter.svelte';
+	import ContactSection from '$lib/components/home/ContactSection.svelte';
+	import InstagramStrip from '$lib/components/home/InstagramStrip.svelte';
 
 	/**
-	 * P1 homepage: foundation only.
+	 * Homepage — the fourteen sections of §8 in order. Header (1), footer (13)
+	 * and scroll-to-top (14) come from the `(site)` layout.
 	 *
-	 * The fourteen homepage sections in §8 (hero slider, counters, featured
-	 * product grid, gallery, newsletter, Instagram strip …) are P3 work and
-	 * need the P2 data layer behind them first. What is here exercises the
-	 * pieces P1 owns — hero-height layout under a transparent header, the
-	 * eyebrow device, the reveal utility, the type scale — using only copy that
-	 * already exists in the typed content module. No new copy is hardcoded.
+	 * Every section takes its content as a prop. None of them import the content
+	 * module, so moving this copy into Postgres later is a change to the load
+	 * function and nothing else.
 	 */
+	let { data, form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -20,53 +31,24 @@
 	<meta name="description" content={site.footerBlurb} />
 </svelte:head>
 
-<section class="hero on-dark">
-	<div class="hero-inner container-page">
-		<Eyebrow text={site.brandTagline} />
-		<h1 class="hero-title display">{site.brandName}</h1>
-	</div>
-</section>
+<Hero slides={home.hero} />
 
-<section class="section-y">
-	<div class="intro container-page" use:reveal={{ stagger: 60 }}>
-		<div class="reveal">
-			<Eyebrow text="Our kitchen" />
-		</div>
-		<p class="intro-copy reveal">{site.footerBlurb}</p>
-	</div>
-</section>
+<Intro content={home.intro} />
 
-<style>
-	.hero {
-		/* Runs under the fixed, transparent header — cancels the offset that
-		   `(site)/+layout.svelte` applies to `main`. */
-		margin-top: calc(-1 * var(--header-h));
-		display: grid;
-		align-items: end;
-		min-height: 100svh;
-		background-color: var(--color-olive);
-		color: var(--color-cream);
-	}
+<CounterStrip counters={home.counters} />
 
-	.hero-inner {
-		padding-block: clamp(3rem, 8vh, 6rem);
-	}
+<FeaturedProducts intro={home.featured} products={data.featured} commerce={data.commerce} />
 
-	.hero-title {
-		margin-top: 1rem;
-		font-size: clamp(3rem, 9vw, 6.5rem);
-		color: var(--color-cream);
-	}
+<Features content={home.features} />
 
-	.intro {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-		max-width: 46rem;
-	}
+<SupplierLogos suppliers={home.suppliers} />
 
-	.intro-copy {
-		font-size: 1.25rem;
-		line-height: 1.7;
-	}
-</style>
+<CateringCta content={home.catering} />
+
+<GallerySection intro={home.gallery} items={home.gallery.items} />
+
+<Newsletter content={home.newsletter} result={form} />
+
+<ContactSection contact={site.contact} />
+
+<InstagramStrip content={home.instagram} />

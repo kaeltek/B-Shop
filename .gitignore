@@ -26,3 +26,6 @@ test-results
 test-results
 .playwright
 .claude/settings.local.json
+
+# Supabase CLI local state
+supabase/.temp/

@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import type { Database } from '$lib/types/database';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { env as publicEnv } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
@@ -48,7 +49,7 @@ export function isSupabaseConfigured(): boolean {
  * Per-request client carrying the caller's cookies, so every query runs as that
  * user and RLS applies. This is the default client for all reads.
  */
-export function createRequestClient(cookies: Cookies): SupabaseClient {
+export function createRequestClient(cookies: Cookies): SupabaseClient<Database> {
 	const { url, anonKey } = readPublicConfig();
 
 	return createServerClient(url, anonKey, {
@@ -73,7 +74,7 @@ export function createRequestClient(cookies: Cookies): SupabaseClient {
  * response to unvalidated user input, and never expose its results without
  * doing your own authorisation check first — RLS is not there to help you here.
  */
-export function createServiceClient(): SupabaseClient {
+export function createServiceClient(): SupabaseClient<Database> {
 	const url = publicEnv.PUBLIC_SUPABASE_URL;
 	const serviceKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
 

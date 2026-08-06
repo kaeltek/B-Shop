@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '$lib/types/database';
 import type { Product } from '$lib/types/catalogue';
-import type { ProductImageRow, ProductRow } from './rows';
+import type { ProductImageRow, ProductRow, ProductUpdate } from './rows';
 
 /**
  * Product reads and writes. All Supabase access for products lives here (§2.1).
@@ -62,7 +63,7 @@ export interface ListProductsOptions {
 }
 
 export async function listProducts(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	options: ListProductsOptions = {}
 ): Promise<Product[]> {
 	const { categorySlug, tag, sort = 'curated', limit, offset } = options;
@@ -130,14 +131,14 @@ export async function listProducts(
  * ever needs to diverge from catalogue order, add the column then.
  */
 export async function listFeaturedProducts(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	limit = 3
 ): Promise<Product[]> {
 	return listProducts(supabase, { sort: 'curated', limit });
 }
 
 export async function getProductBySlug(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	slug: string
 ): Promise<Product | null> {
 	const { data, error } = await supabase
@@ -151,7 +152,7 @@ export async function getProductBySlug(
 }
 
 export async function getProductById(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	id: string
 ): Promise<Product | null> {
 	const { data, error } = await supabase
@@ -165,7 +166,7 @@ export async function getProductById(
 }
 
 /** Every distinct tag in use, for the shop filter bar. */
-export async function listTags(supabase: SupabaseClient): Promise<string[]> {
+export async function listTags(supabase: SupabaseClient<Database>): Promise<string[]> {
 	const { data, error } = await supabase
 		.from('product_tags')
 		.select('tag')
@@ -188,8 +189,8 @@ export interface ProductInput {
 	sortOrder?: number;
 }
 
-function toPayload(input: Partial<ProductInput>): Record<string, unknown> {
-	const payload: Record<string, unknown> = {};
+function toPayload(input: Partial<ProductInput>): ProductUpdate {
+	const payload: ProductUpdate = {};
 	if (input.slug !== undefined) payload.slug = input.slug;
 	if (input.name !== undefined) payload.name = input.name;
 	if (input.summary !== undefined) payload.summary = input.summary;
@@ -204,12 +205,26 @@ function toPayload(input: Partial<ProductInput>): Record<string, unknown> {
 }
 
 export async function createProduct(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	input: ProductInput
 ): Promise<Product> {
+	// Built explicitly rather than through toPayload: slug and name are required
+	// on insert but optional on update, so the two payloads are not the same
+	// type and collapsing them would lose that distinction.
 	const { data, error } = await supabase
 		.from('products')
-		.insert(toPayload(input))
+		.insert({
+			slug: input.slug,
+			name: input.name,
+			summary: input.summary ?? null,
+			description: input.description ?? null,
+			price_cents: input.priceCents,
+			currency: input.currency ?? 'EUR',
+			category_id: input.categoryId ?? null,
+			is_published: input.isPublished ?? false,
+			is_available: input.isAvailable ?? true,
+			sort_order: input.sortOrder ?? 0
+		})
 		.select(SELECT)
 		.single<ProductRow>();
 
@@ -218,7 +233,7 @@ export async function createProduct(
 }
 
 export async function updateProduct(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	id: string,
 	input: Partial<ProductInput>
 ): Promise<Product> {
@@ -242,7 +257,7 @@ export async function updateProduct(
 
 /** Replaces a product's tag set wholesale. */
 export async function setProductTags(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	productId: string,
 	tags: string[]
 ): Promise<void> {
@@ -268,7 +283,7 @@ export async function setProductTags(
  * first or they are orphaned. `deleteProductWithImages` in ./images.ts does both
  * in the right order; prefer it.
  */
-export async function deleteProduct(supabase: SupabaseClient, id: string): Promise<void> {
+export async function deleteProduct(supabase: SupabaseClient<Database>, id: string): Promise<void> {
 	const { error } = await supabase.from('products').delete().eq('id', id);
 	if (error) throw new Error(`Failed to delete product: ${error.message}`);
 }

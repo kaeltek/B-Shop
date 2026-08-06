@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '$lib/types/database';
 import type { ProductImage } from '$lib/types/catalogue';
-import type { ProductImageRow } from './rows';
+import type { ProductImageRow, ProductImageUpdate } from './rows';
 
 /**
  * Product image rows. All Supabase access for images lives here (§2.1).
@@ -25,7 +26,7 @@ function toImage(row: ProductImageRow): ProductImage {
 }
 
 export async function listImagesForProduct(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	productId: string
 ): Promise<ProductImage[]> {
 	const { data, error } = await supabase
@@ -56,7 +57,10 @@ export interface NewImage {
  * throws (§4.3 step 5) — an orphaned object is invisible waste, whereas a row
  * pointing at nothing is a broken image on the storefront.
  */
-export async function addImage(supabase: SupabaseClient, image: NewImage): Promise<ProductImage> {
+export async function addImage(
+	supabase: SupabaseClient<Database>,
+	image: NewImage
+): Promise<ProductImage> {
 	const { data, error } = await supabase
 		.from('product_images')
 		.insert({
@@ -76,11 +80,11 @@ export async function addImage(supabase: SupabaseClient, image: NewImage): Promi
 }
 
 export async function updateImage(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	id: string,
 	patch: { altText?: string; sortOrder?: number }
 ): Promise<ProductImage> {
-	const payload: Record<string, unknown> = {};
+	const payload: ProductImageUpdate = {};
 	if (patch.altText !== undefined) payload.alt_text = patch.altText;
 	if (patch.sortOrder !== undefined) payload.sort_order = patch.sortOrder;
 
@@ -102,14 +106,17 @@ export async function updateImage(
  * primary and setting the new one share a transaction — `one_primary_per_product`
  * would reject the naive two-call version.
  */
-export async function setPrimaryImage(supabase: SupabaseClient, imageId: string): Promise<void> {
+export async function setPrimaryImage(
+	supabase: SupabaseClient<Database>,
+	imageId: string
+): Promise<void> {
 	const { error } = await supabase.rpc('set_primary_product_image', { p_image_id: imageId });
 	if (error) throw new Error(`Failed to set primary image: ${error.message}`);
 }
 
 /** Applies a new display order. `imageIds` must be in the desired order. */
 export async function reorderImages(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	productId: string,
 	imageIds: string[]
 ): Promise<void> {
@@ -131,7 +138,10 @@ export async function reorderImages(
  * object. Returning it rather than deleting it here keeps this module free of
  * any dependency on the storage driver.
  */
-export async function deleteImage(supabase: SupabaseClient, id: string): Promise<string | null> {
+export async function deleteImage(
+	supabase: SupabaseClient<Database>,
+	id: string
+): Promise<string | null> {
 	const { data, error } = await supabase
 		.from('product_images')
 		.delete()
@@ -151,7 +161,7 @@ export async function deleteImage(supabase: SupabaseClient, id: string): Promise
  * (§4.4 — "deleting a product must delete its objects from storage").
  */
 export async function collectStorageKeys(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	productId: string
 ): Promise<string[]> {
 	const { data, error } = await supabase

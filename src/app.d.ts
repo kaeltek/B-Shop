@@ -2,6 +2,7 @@
 // for information about these interfaces
 
 import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
+import type { Database } from '$lib/types/database';
 import type { CommerceSettings } from '$lib/types/catalogue';
 
 declare global {
@@ -12,7 +13,7 @@ declare global {
 			 * applies. Constructed lazily — accessing it while the project is
 			 * unconfigured throws `SupabaseNotConfiguredError`.
 			 */
-			supabase: SupabaseClient;
+			supabase: SupabaseClient<Database>;
 			/** Verified session and user, or nulls. Validates the JWT server-side. */
 			safeGetSession(): Promise<{ session: Session | null; user: User | null }>;
 			/**

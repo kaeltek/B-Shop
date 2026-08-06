@@ -1,63 +1,43 @@
+import type { Database } from '$lib/types/database';
+
 /**
- * TEMPORARY row shapes.
+ * Row types, derived from the CLI-generated schema (§2.4).
  *
- * §2.4 says row types come from the Supabase CLI, not from a keyboard. That
- * generator needs a project to introspect and there is not one yet, so these
- * stand in until there is.
+ * These are aliases, not hand-written shapes: regenerate with `npm run db:types`
+ * after any migration and every module below picks the change up. If a column
+ * is renamed or dropped, `svelte-check` fails here rather than at runtime.
  *
- * **To remove this file**, once a project is linked:
- *
- *   npx supabase link --project-ref <ref>
- *   npm run db:types            # writes src/lib/types/database.ts
- *
- * then replace each import of `./rows` with the generated equivalent
- *
- *   type ProductRow = Database['public']['Tables']['products']['Row'];
- *
- * and type the client as `SupabaseClient<Database>` in supabase.ts. Nothing
- * outside `src/lib/server/db/` imports these, so it is a contained change.
- *
- * Keep this file in sync with supabase/migrations/ by hand until then.
+ * PostgREST embeds are the one thing the generator cannot express — a
+ * `select()` with a nested resource returns the parent row plus the embedded
+ * arrays — so those are composed explicitly.
  */
 
-export interface CategoryRow {
-	id: string;
-	slug: string;
-	name: string;
-	description: string | null;
-	sort_order: number;
-}
+type Tables = Database['public']['Tables'];
 
-export interface ProductImageRow {
-	id: string;
-	product_id: string;
-	storage_key: string;
-	alt_text: string;
-	width: number;
-	height: number;
-	sort_order: number;
-	is_primary: boolean;
-}
+export type CategoryRow = Tables['categories']['Row'];
+export type ProductImageRow = Tables['product_images']['Row'];
 
-export interface ProductRow {
-	id: string;
-	slug: string;
-	name: string;
-	summary: string | null;
-	description: string | null;
-	price_cents: number;
-	currency: string;
-	category_id: string | null;
-	is_published: boolean;
-	is_available: boolean;
-	sort_order: number;
-	/** Embedded by PostgREST when the select asks for them. */
+/** `products` with the tags and images the storefront select embeds. */
+export type ProductRow = Tables['products']['Row'] & {
 	product_tags?: { tag: string }[] | null;
 	product_images?: ProductImageRow[] | null;
-}
+};
 
-export interface SiteSettingsRow {
-	commerce_enabled: boolean;
-	show_prices_when_gated: boolean;
-	gated_notice: string | null;
-}
+/** Only the columns `getSettings` asks for. */
+export type SiteSettingsRow = Pick<
+	Tables['site_settings']['Row'],
+	'commerce_enabled' | 'show_prices_when_gated' | 'gated_notice'
+>;
+
+/**
+ * Write payloads.
+ *
+ * Using these instead of `Record<string, unknown>` is what makes a typo in a
+ * column name a compile error rather than a silent no-op at runtime — PostgREST
+ * happily accepts an unknown key and ignores it.
+ */
+export type ProductInsert = Tables['products']['Insert'];
+export type ProductUpdate = Tables['products']['Update'];
+export type CategoryUpdate = Tables['categories']['Update'];
+export type ProductImageUpdate = Tables['product_images']['Update'];
+export type SiteSettingsUpdate = Tables['site_settings']['Update'];

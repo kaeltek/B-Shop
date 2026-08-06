@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '$lib/types/database';
 import type { Category } from '$lib/types/catalogue';
-import type { CategoryRow } from './rows';
+import type { CategoryRow, CategoryUpdate } from './rows';
 
 /** Category reads and writes. All Supabase access for categories lives here. */
 
@@ -16,7 +17,7 @@ function toCategory(row: CategoryRow): Category {
 	};
 }
 
-export async function listCategories(supabase: SupabaseClient): Promise<Category[]> {
+export async function listCategories(supabase: SupabaseClient<Database>): Promise<Category[]> {
 	const { data, error } = await supabase
 		.from('categories')
 		.select(SELECT)
@@ -29,7 +30,7 @@ export async function listCategories(supabase: SupabaseClient): Promise<Category
 }
 
 export async function getCategoryBySlug(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	slug: string
 ): Promise<Category | null> {
 	const { data, error } = await supabase
@@ -50,7 +51,7 @@ export interface CategoryInput {
 }
 
 export async function createCategory(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	input: CategoryInput
 ): Promise<Category> {
 	const { data, error } = await supabase
@@ -69,11 +70,11 @@ export async function createCategory(
 }
 
 export async function updateCategory(
-	supabase: SupabaseClient,
+	supabase: SupabaseClient<Database>,
 	id: string,
 	input: Partial<CategoryInput>
 ): Promise<Category> {
-	const payload: Record<string, unknown> = {};
+	const payload: CategoryUpdate = {};
 	if (input.slug !== undefined) payload.slug = input.slug;
 	if (input.name !== undefined) payload.name = input.name;
 	if (input.description !== undefined) payload.description = input.description;
@@ -91,7 +92,10 @@ export async function updateCategory(
 }
 
 /** Products in this category are not deleted — their category_id becomes null. */
-export async function deleteCategory(supabase: SupabaseClient, id: string): Promise<void> {
+export async function deleteCategory(
+	supabase: SupabaseClient<Database>,
+	id: string
+): Promise<void> {
 	const { error } = await supabase.from('categories').delete().eq('id', id);
 	if (error) throw new Error(`Failed to delete category: ${error.message}`);
 }

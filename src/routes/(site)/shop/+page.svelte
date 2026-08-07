@@ -3,7 +3,7 @@
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
 	import ProductCard from '$lib/components/shop/ProductCard.svelte';
 	import { reveal } from '$lib/actions/reveal';
-	import { menuPage } from '$lib/content/pages';
+	import { shopPage } from '$lib/content/pages';
 
 	/**
 	 * Shop index — full catalogue with filters and sort (§6).
@@ -49,15 +49,15 @@
 </script>
 
 <svelte:head>
-	<title>Shop — everything we sell to take home</title>
-	<meta name="description" content={menuPage.intro.standfirst} />
+	<title>Shop — {shopPage.intro.title}</title>
+	<meta name="description" content={shopPage.intro.standfirst} />
 </svelte:head>
 
 <header class="head section-y">
 	<div class="container-page">
-		<Eyebrow text="The shop" />
-		<h1 class="title display">Everything we sell to take home</h1>
-		<p class="standfirst">{menuPage.intro.standfirst}</p>
+		<Eyebrow text={shopPage.intro.eyebrow} />
+		<h1 class="title display">{shopPage.intro.title}</h1>
+		<p class="standfirst">{shopPage.intro.standfirst}</p>
 	</div>
 </header>
 

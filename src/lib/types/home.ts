@@ -13,14 +13,38 @@
  * sections take their content as props and never import this file directly.
  */
 
+/**
+ * A real photograph behind a hero slide, in every size it ships at.
+ *
+ * Unlike product imagery this is editorial and static, so it lives in
+ * `static/hero-images/` and is referenced by path rather than coming from
+ * `product_images` via /media. Variants are pre-encoded WebP — see the note
+ * above `home.hero`.
+ */
+export interface HeroImage {
+	/** Widest variant. The fallback for anything that ignores `srcset`. */
+	src: string;
+	/** Every variant with its intrinsic width, narrowest first. */
+	srcset: string;
+	alt: string;
+	/** Intrinsic size of `src`, so the browser can reserve space. */
+	width: number;
+	height: number;
+	/**
+	 * `object-position` for the cover crop. Both photographs are wide, and a
+	 * portrait phone crops most of that width away — this keeps each one's
+	 * subject in frame instead of centring on whatever happens to be middle.
+	 */
+	focus: string;
+}
+
 export interface HeroSlide {
 	eyebrow: string;
 	/** Two lines, broken deliberately (§7.2). */
 	headingLines: [string, string];
 	ctaLabel: string;
 	ctaHref: string;
-	imageSeed: string;
-	imageAlt: string;
+	image: HeroImage;
 }
 
 export interface CounterItem {
@@ -34,11 +58,25 @@ export interface StatBlock {
 	label: string;
 }
 
-export interface GalleryItem {
-	seed: string;
+/**
+ * A gallery photograph, in every size it ships at.
+ *
+ * Like the hero imagery this is editorial and static, so it lives in
+ * `static/gallery/` and is referenced by path rather than coming from
+ * `product_images` via /media. See `$lib/content/gallery` for the set itself
+ * and the script that encodes the variants.
+ */
+export interface GalleryImage {
+	/** Stable identity — the `{#each}` key and the lightbox's handle on a tile. */
+	id: string;
+	/** Widest variant. The fallback for anything that ignores `srcset`. */
+	src: string;
+	/** Every variant with its intrinsic width, narrowest first. */
+	srcset: string;
 	alt: string;
-	/** Drives the masonry span (§8.9 — asymmetric, not a uniform grid). */
-	shape: 'tall' | 'wide' | 'square';
+	/** Intrinsic size of `src`, so the browser can reserve space. */
+	width: number;
+	height: number;
 }
 
 export interface IntroContent {
@@ -93,12 +131,7 @@ export interface HomeContent {
 	/** Six supplier marks (§8.7). Names only — drawn as wordmarks, not images. */
 	suppliers: string[];
 	catering: CateringContent;
-	gallery: SectionIntro & { items: GalleryItem[] };
-	newsletter: {
-		eyebrow: string;
-		heading: string;
-		body: string;
-		consentLabel: string;
-	};
+	/** Copy only — the photographs themselves come from `$lib/content/gallery`. */
+	gallery: SectionIntro;
 	instagram: SectionIntro & { handle: string; items: { seed: string; alt: string }[] };
 }

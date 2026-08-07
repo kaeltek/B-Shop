@@ -1,13 +1,12 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
 	import { prefersReducedMotion } from '$lib/utils/motion';
 	import type { HeroSlide } from '$lib/types/home';
 
 	/**
-	 * Full-viewport hero slider (§8.2): three slides, crossfade, 6s interval,
-	 * pause on hover, manual dots.
+	 * Full-viewport hero slider (§8.2): one slide per photograph, crossfade, 6s
+	 * interval, pause on hover, manual dots.
 	 *
 	 * Auto-advance never starts under reduced motion — carousels that move on
 	 * their own are exactly what that preference is asking to stop. The dots
@@ -44,7 +43,7 @@
 	onfocusin={() => (paused = true)}
 	onfocusout={() => (paused = false)}
 >
-	{#each slides as slide, i (slide.imageSeed)}
+	{#each slides as slide, i (slide.image.src)}
 		<div
 			class="slide"
 			class:is-active={i === index}
@@ -55,7 +54,22 @@
 			inert={i === index ? undefined : true}
 		>
 			<div class="media">
-				<PlaceholderImage seed={slide.imageSeed} alt={slide.imageAlt} />
+				<!-- Full-bleed, so the browser always needs the variant closest to
+				     the viewport width. `width`/`height` are the intrinsic size of
+				     the widest variant: they fix the aspect ratio while the file is
+				     in flight, which is what stops the copy jumping on load. -->
+				<img
+					src={slide.image.src}
+					srcset={slide.image.srcset}
+					sizes="100vw"
+					alt={slide.image.alt}
+					width={slide.image.width}
+					height={slide.image.height}
+					style:object-position={slide.image.focus}
+					decoding="async"
+					fetchpriority={i === 0 ? 'high' : 'auto'}
+					loading="eager"
+				/>
 			</div>
 			<div class="scrim" aria-hidden="true"></div>
 
@@ -71,7 +85,7 @@
 
 	{#if slides.length > 1}
 		<div class="dots">
-			{#each slides as slide, i (slide.imageSeed)}
+			{#each slides as slide, i (slide.image.src)}
 				<button
 					type="button"
 					class="dot"
@@ -118,22 +132,47 @@
 	.media {
 		position: absolute;
 		inset: 0;
+		overflow: hidden;
 	}
 
-	.media :global(svg) {
+	.media img {
+		display: block;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		/* `object-position` is set per slide from the content module. */
 	}
 
+	/* A slow drift on the slide currently showing. The photographs are wide and
+	   the crop is tight on a phone, so this also quietly reveals a little more
+	   of each one over the six seconds it is up. */
+	.slide.is-active .media img {
+		animation: hero-drift 9s var(--ease-card) forwards;
+	}
+
+	@keyframes hero-drift {
+		from {
+			transform: scale(1.02);
+		}
+		to {
+			transform: scale(1.09);
+		}
+	}
+
+	/*
+	 * Both photographs are bright and low-contrast — cream on cream. The scrim
+	 * is heavier than it would need to be over darker art, and is what keeps the
+	 * heading above 4.5:1 (§10). Horizontal on wide screens, where the copy sits
+	 * in the left column; see the narrow-screen override below.
+	 */
 	.scrim {
 		position: absolute;
 		inset: 0;
 		background: linear-gradient(
 			to right,
-			rgb(33 28 24 / 0.72),
-			rgb(33 28 24 / 0.45) 55%,
-			rgb(33 28 24 / 0.25)
+			rgb(33 28 24 / 0.82),
+			rgb(33 28 24 / 0.62) 45%,
+			rgb(33 28 24 / 0.32)
 		);
 	}
 
@@ -192,5 +231,41 @@
 		clip-path: inset(50%);
 		white-space: nowrap;
 		border: 0;
+	}
+
+	/*
+	 * A phone crops most of the width away, so the copy no longer sits over the
+	 * empty part of the picture and a left-to-right scrim would be pointless.
+	 * Weight it from the bottom, drop the copy to meet it, and leave the top of
+	 * the frame clear so the photograph still reads as one.
+	 */
+	@media (width < 48rem) {
+		.slide {
+			align-items: end;
+		}
+
+		.scrim {
+			background: linear-gradient(
+				to bottom,
+				rgb(33 28 24 / 0.45),
+				rgb(33 28 24 / 0.3) 30%,
+				rgb(33 28 24 / 0.82)
+			);
+		}
+
+		.content {
+			gap: 1.25rem;
+			padding-block: 6rem 5.5rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.slide {
+			transition: none;
+		}
+
+		.slide.is-active .media img {
+			animation: none;
+		}
 	}
 </style>

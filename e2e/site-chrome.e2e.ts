@@ -36,20 +36,56 @@ test('mobile drawer opens, and Escape closes it', async ({ page }) => {
 	await expect(drawer).toBeHidden();
 });
 
-test('desktop dropdown opens on click and closes on Escape', async ({ page }) => {
+test('the Shop nav item navigates without touching the dropdown', async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 900 });
 	await page.goto('/');
 
-	// Scoped to the primary nav: "Our Story" also appears in the footer.
+	// The point of splitting the branch into a link and a toggle: /shop is
+	// reachable in one click, with no submenu item in the way.
 	const primary = page.getByRole('navigation', { name: 'Primary' });
-	const trigger = primary.getByRole('button', { name: 'About' });
+	await primary.getByRole('link', { name: 'Shop', exact: true }).click();
 
-	await trigger.click();
-	await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-	await expect(primary.getByRole('link', { name: 'Our Story' })).toBeVisible();
+	await expect(page).toHaveURL(/\/shop$/);
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});
 
+test('the dropdown arrow toggles the submenu, and Escape closes it', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await page.goto('/');
+
+	const primary = page.getByRole('navigation', { name: 'Primary' });
+	// Named for what it does, so the label link and the arrow never collide.
+	const arrow = primary.getByRole('button', { name: /Shop categories$/ });
+
+	await arrow.click();
+	await expect(arrow).toHaveAttribute('aria-expanded', 'true');
+	// Category names are admin-managed, so assert on the shape of the panel
+	// rather than on whatever happens to be in the database today.
+	await expect(primary.locator('.dropdown a').first()).toBeVisible();
+
+	// A second click must close it — the old trigger swallowed this because
+	// hover had already opened the menu before the click landed.
+	await arrow.click();
+	await expect(arrow).toHaveAttribute('aria-expanded', 'false');
+
+	await arrow.click();
 	await page.keyboard.press('Escape');
-	await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+	await expect(arrow).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('the drawer exposes both the Shop page and its categories', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+
+	await page.getByRole('button', { name: 'Open menu' }).click();
+	const drawer = page.getByRole('dialog', { name: 'Site menu' });
+
+	await drawer.getByRole('button', { name: /Shop categories$/ }).click();
+	await expect(drawer.locator('.drawer-sub a').first()).toBeVisible();
+
+	// The parent is still a link, so expanding it did not consume the tap.
+	await drawer.getByRole('link', { name: 'Shop', exact: true }).click();
+	await expect(page).toHaveURL(/\/shop$/);
 });
 
 test('footer exposes real tel: and mailto: links', async ({ page }) => {

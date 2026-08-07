@@ -3,7 +3,7 @@
 	import { focusTrap } from '$lib/actions/focusTrap';
 	import { prefersReducedMotion } from '$lib/utils/motion';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
+	import type { GalleryImage } from '$lib/types/home';
 
 	/**
 	 * Gallery lightbox with full keyboard navigation (§8.9, §10).
@@ -11,27 +11,22 @@
 	 * Escape closes, arrow keys move, Tab is trapped, and focus returns to the
 	 * thumbnail that opened it.
 	 */
-	interface Item {
-		seed: string;
-		alt: string;
-	}
-
 	interface Props {
-		items: Item[];
-		/** Index of the open item, or null when closed. */
+		images: GalleryImage[];
+		/** Index of the open image, or null when closed. */
 		index: number | null;
 		onclose: () => void;
 		onnavigate: (index: number) => void;
 	}
 
-	let { items, index, onclose, onnavigate }: Props = $props();
+	let { images, index, onclose, onnavigate }: Props = $props();
 
 	const duration = prefersReducedMotion() ? 0 : 200;
-	const current = $derived(index === null ? null : items[index]);
+	const current = $derived(index === null ? null : images[index]);
 
 	function go(delta: number) {
 		if (index === null) return;
-		onnavigate((index + delta + items.length) % items.length);
+		onnavigate((index + delta + images.length) % images.length);
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -68,7 +63,7 @@
 		class="lightbox on-dark"
 		role="dialog"
 		aria-modal="true"
-		aria-label="Gallery image {(index ?? 0) + 1} of {items.length}"
+		aria-label="Gallery image {(index ?? 0) + 1} of {images.length}"
 		use:focusTrap
 		transition:fade={{ duration }}
 	>
@@ -77,7 +72,15 @@
 
 		<div class="frame">
 			<figure>
-				<PlaceholderImage seed={current.seed} alt={current.alt} />
+				<img
+					src={current.src}
+					srcset={current.srcset}
+					sizes="(min-width: 68rem) 60rem, 92vw"
+					width={current.width}
+					height={current.height}
+					alt={current.alt}
+					decoding="async"
+				/>
 				<figcaption>{current.alt}</figcaption>
 			</figure>
 		</div>
@@ -97,7 +100,7 @@
 			<span class="sr-only">Next image</span>
 		</button>
 
-		<p class="counter" aria-hidden="true">{(index ?? 0) + 1} / {items.length}</p>
+		<p class="counter" aria-hidden="true">{(index ?? 0) + 1} / {images.length}</p>
 	</div>
 {/if}
 
@@ -128,10 +131,17 @@
 		margin: 0;
 	}
 
-	figure :global(svg) {
-		aspect-ratio: 3 / 2;
+	/* No forced aspect ratio: the photograph is shown whole, bounded by whichever
+	   of the two axes runs out first. The caption is reserved out of the height
+	   so a tall image never pushes it off-screen. */
+	figure img {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: calc(100dvh - 12rem);
+		object-fit: contain;
+		margin-inline: auto;
 		border-radius: var(--radius-organic);
-		object-fit: cover;
 	}
 
 	figcaption {

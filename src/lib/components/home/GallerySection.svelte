@@ -1,19 +1,19 @@
 <script lang="ts">
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
-	import Lightbox from '$lib/components/ui/Lightbox.svelte';
-	import { reveal } from '$lib/actions/reveal';
-	import type { GalleryItem, SectionIntro } from '$lib/types/home';
+	import GalleryGrid from '$lib/components/ui/GalleryGrid.svelte';
+	import type { GalleryImage, SectionIntro } from '$lib/types/home';
 
-	/** Asymmetric masonry with a keyboard-navigable lightbox (§8.9). */
+	/**
+	 * Homepage gallery (§8.9). The grid, the hover, the stagger and the lightbox
+	 * all live in `GalleryGrid`, shared with `/gallery` — this is the section
+	 * header and the link through to the rest.
+	 */
 	interface Props {
 		intro: SectionIntro;
-		items: GalleryItem[];
+		images: GalleryImage[];
 	}
 
-	let { intro, items }: Props = $props();
-
-	let openIndex = $state<number | null>(null);
+	let { intro, images }: Props = $props();
 </script>
 
 <section class="section-y">
@@ -23,25 +23,13 @@
 			<h2 class="heading display">{intro.heading}</h2>
 		</header>
 
-		<ul class="masonry" use:reveal={{ stagger: 60 }}>
-			{#each items as item, i (item.seed)}
-				<li class="tile {item.shape} reveal">
-					<button type="button" onclick={() => (openIndex = i)}>
-						<PlaceholderImage seed={item.seed} alt="" />
-						<span class="sr-only">Open image: {item.alt}</span>
-					</button>
-				</li>
-			{/each}
-		</ul>
+		<GalleryGrid {images} />
+
+		<p class="more">
+			<a href="/gallery">See the full gallery</a>
+		</p>
 	</div>
 </section>
-
-<Lightbox
-	items={items.map((item) => ({ seed: item.seed, alt: item.alt }))}
-	index={openIndex}
-	onclose={() => (openIndex = null)}
-	onnavigate={(next) => (openIndex = next)}
-/>
 
 <style>
 	.head {
@@ -56,67 +44,31 @@
 		font-size: clamp(2.25rem, 4.5vw, 3.25rem);
 	}
 
-	.masonry {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		grid-auto-rows: 11rem;
-		gap: 1rem;
-		list-style: none;
-		margin: 0;
-		padding: 0;
+	.more {
+		margin-top: 2.5rem;
+		text-align: center;
 	}
 
-	.tile {
-		overflow: hidden;
-		border-radius: var(--radius-image);
+	.more a {
+		display: inline-block;
+		border: 1px solid rgb(33 28 24 / 0.2);
+		border-radius: var(--radius-pill);
+		padding: 0.85rem 1.75rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		text-decoration: none;
+		color: var(--color-ink);
+		transition:
+			background-color 250ms var(--ease-card),
+			border-color 250ms var(--ease-card),
+			color 250ms var(--ease-card);
 	}
 
-	.tile button {
-		display: block;
-		width: 100%;
-		height: 100%;
-		border: 0;
-		padding: 0;
-		background: none;
-		cursor: pointer;
-	}
-
-	.tile :global(svg) {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 400ms var(--ease-card);
-	}
-
-	.tile:hover :global(svg),
-	.tile button:focus-visible :global(svg) {
-		transform: scale(1.05);
-	}
-
-	.tall {
-		grid-row: span 2;
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-		border: 0;
-	}
-
-	@media (width >= 48rem) {
-		.masonry {
-			grid-template-columns: repeat(4, 1fr);
-			grid-auto-rows: 13rem;
-		}
-
-		.wide {
-			grid-column: span 2;
-		}
+	.more a:hover {
+		background-color: var(--color-ink);
+		border-color: var(--color-ink);
+		color: var(--color-cream);
 	}
 </style>

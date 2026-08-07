@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fade, fly } from 'svelte/transition';
+	import { fade, fly, slide } from 'svelte/transition';
 	import { focusTrap } from '$lib/actions/focusTrap';
 	import { prefersReducedMotion } from '$lib/utils/motion';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -70,30 +70,40 @@
 			<ul>
 				{#each items as item, i (`${item.label}-${item.href}`)}
 					<li>
-						{#if item.children?.length}
-							<button
-								type="button"
-								class="drawer-link is-toggle"
-								aria-expanded={expanded === i}
-								aria-controls="drawer-sub-{i}"
-								onclick={() => (expanded = expanded === i ? null : i)}
-							>
-								<span>{item.label}</span>
-								<Icon
-									name="chevron-down"
-									size={16}
-									class="chevron {expanded === i ? 'is-open' : ''}"
-								/>
-							</button>
-							{#if expanded === i}
-								<ul class="drawer-sub" id="drawer-sub-{i}">
-									{#each item.children as child (child.href)}
-										<li><a href={child.href} onclick={onclose}>{child.label}</a></li>
-									{/each}
-								</ul>
-							{/if}
-						{:else}
+						<!-- Label and disclosure are separate controls, exactly as on
+						     desktop: tapping "Shop" goes to /shop, tapping the arrow
+						     expands the categories. One control cannot do both without
+						     making one of the two unreachable. -->
+						<div class="drawer-row">
 							<a href={item.href} class="drawer-link" onclick={onclose}>{item.label}</a>
+
+							{#if item.children?.length}
+								<button
+									type="button"
+									class="drawer-toggle"
+									aria-expanded={expanded === i}
+									aria-controls="drawer-sub-{i}"
+									onclick={() => (expanded = expanded === i ? null : i)}
+								>
+									<Icon
+										name="chevron-down"
+										size={18}
+										class="chevron {expanded === i ? 'is-open' : ''}"
+									/>
+									<span class="sr-only">
+										{expanded === i ? 'Hide' : 'Show'}
+										{item.label} categories
+									</span>
+								</button>
+							{/if}
+						</div>
+
+						{#if item.children?.length && expanded === i}
+							<ul class="drawer-sub" id="drawer-sub-{i}" transition:slide={{ duration }}>
+								{#each item.children as child (child.href)}
+									<li><a href={child.href} onclick={onclose}>{child.label}</a></li>
+								{/each}
+							</ul>
 						{/if}
 					</li>
 				{/each}
@@ -192,33 +202,52 @@
 		padding: 0;
 	}
 
-	.drawer-link {
+	.drawer-row {
 		display: flex;
-		width: 100%;
 		align-items: center;
-		justify-content: space-between;
 		gap: 0.5rem;
-		border: 0;
 		border-bottom: 1px solid rgb(33 28 24 / 0.08);
-		background: none;
+	}
+
+	.drawer-link {
+		flex: 1;
 		padding: 0.9rem 0;
 		font-family: var(--font-display);
 		font-size: 1.375rem;
 		color: var(--color-ink);
 		text-align: left;
 		text-decoration: none;
-		cursor: pointer;
 	}
 
 	.drawer-link:hover {
 		color: var(--color-accent-strong);
 	}
 
-	.drawer-link :global(.chevron) {
+	/* A full 44px target, the minimum that is comfortable with a thumb — the
+	   old inline 16px chevron was the thing that would not respond. */
+	.drawer-toggle {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 0;
+		border-radius: var(--radius-pill);
+		background: none;
+		color: var(--color-ink);
+		cursor: pointer;
+		transition: background-color 200ms var(--ease-card);
+	}
+
+	.drawer-toggle:hover {
+		background-color: var(--color-sand);
+	}
+
+	.drawer-toggle :global(.chevron) {
 		transition: transform 250ms var(--ease-card);
 	}
 
-	.drawer-link :global(.chevron.is-open) {
+	.drawer-toggle :global(.chevron.is-open) {
 		transform: rotate(180deg);
 	}
 

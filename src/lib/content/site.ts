@@ -11,25 +11,19 @@ import type { SiteContent } from '$lib/types/content';
  * putting them in Postgres would buy nothing and cost a query per request.
  */
 export const site: SiteContent = {
-	brandName: 'Olive & Ember',
-	brandTagline: 'Slow food, open fire',
+	brandName: 'B-Shop',
+	brandTagline: 'Stock Up. Snack Better. Package Smarter',
 	footerBlurb:
-		'A neighbourhood kitchen cooking over wood and coals. We bake in the morning, braise through the afternoon, and keep the last table open a little later than we should.',
+		'From delicious snacks and breakfast favorites to professional-grade food packaging solutions, we provide quality products that meet the needs of both households and businesses.',
 
 	nav: [
 		{ label: 'Home', href: '/' },
 		// No `children` here by design — shop categories are admin-managed and
 		// are merged in from the database, not hardcoded. See NavLink docs.
+		// `/shop` stays the item's own destination either way: the dropdown is a
+		// shortcut into a filtered view, never the only way in.
 		{ label: 'Shop', href: '/shop' },
-		{ label: 'Menu', href: '/menu' },
-		{
-			label: 'About',
-			href: '/about',
-			children: [
-				{ label: 'Our Story', href: '/about' },
-				{ label: 'Gallery', href: '/gallery' }
-			]
-		},
+		{ label: 'Gallery', href: '/gallery' },
 		{ label: 'Contact', href: '/contact' }
 	],
 
@@ -38,9 +32,8 @@ export const site: SiteContent = {
 			heading: 'Explore',
 			links: [
 				{ label: 'Shop', href: '/shop' },
-				{ label: 'Menu', href: '/menu' },
 				{ label: 'Gallery', href: '/gallery' },
-				{ label: 'Our Story', href: '/about' }
+				{ label: 'Contact', href: '/contact' }
 			]
 		},
 		{
@@ -61,10 +54,10 @@ export const site: SiteContent = {
 
 	contact: {
 		// Eurozone, to match the schema's default currency of EUR (§5).
-		addressLines: ['14 Kilnwright Lane', 'Stoneybatter', 'Dublin D07 F5P2'],
-		phone: '+35315550100',
-		phoneDisplay: '+353 1 555 0100',
-		email: 'hello@oliveandember.test',
+		addressLines: ['Adenta, Greater Accra, Ghana'],
+		phone: '+233 24 609 6891',
+		phoneDisplay: '+233 24 609 6891',
+		email: 'info@bshop.cc',
 		hours: ['Tue – Thu  ·  8:00 — 22:00', 'Fri – Sat  ·  8:00 — 23:30', 'Sun  ·  9:00 — 16:00']
 	}
 };

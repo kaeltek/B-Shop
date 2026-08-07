@@ -10,23 +10,31 @@
 		eyebrow?: string;
 		heading?: string;
 		body?: string;
+		/**
+		 * Surface tint. The homepage sets `sand` so the run of sections after the
+		 * gallery still alternates tone — the newsletter block used to provide
+		 * that break. `/contact` leaves it plain, where the section follows its
+		 * own page header and needs no separation.
+		 */
+		surface?: 'plain' | 'sand';
 	}
 
 	let {
 		contact,
 		eyebrow = 'Come and find us',
 		heading = 'On the corner, under the green awning',
-		body = 'Walk-ins for breakfast and lunch. Evenings are one sitting, booked ahead — call us, or send an email and we will call you back.'
+		body = 'We also offer catering for events, celebrations and parties. Call us to discuss your requirements.',
+		surface = 'plain'
 	}: Props = $props();
 </script>
 
-<section class="section-y">
+<section class="contact section-y" class:sand={surface === 'sand'}>
 	<div class="container-page grid" use:reveal={{ stagger: 80 }}>
 		<div class="copy reveal">
 			<Eyebrow text={eyebrow} />
 			<h2 class="heading display">{heading}</h2>
 			<p>{body}</p>
-			<Button href="tel:{contact.phone}" variant="outline">Call the kitchen</Button>
+			<Button href="tel:{contact.phone}" variant="outline">CALL NOW</Button>
 		</div>
 
 		<div class="blocks reveal">
@@ -56,6 +64,10 @@
 </section>
 
 <style>
+	.contact.sand {
+		background-color: var(--color-sand);
+	}
+
 	.grid {
 		display: grid;
 		gap: 3rem;

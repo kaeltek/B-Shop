@@ -24,7 +24,7 @@
 	contact={site.contact}
 	eyebrow="Details"
 	heading="Everything you need to reach us"
-	body="The quickest way to book an evening table is to call between nine and five. For anything that needs thinking about — catering, a private room, a big group — email is better, and you will get a proper answer rather than a rushed one."
+	body="Is it a question about our products, or do you want to place an order? You can reach us by phone or WhatsApp. We look forward to hearing from you!"
 />
 
 <style>

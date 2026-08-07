@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import { site } from '$lib/content/site';
 	import { home } from '$lib/content/home';
+	import { homeGalleryImages } from '$lib/content/gallery';
 
 	import Hero from '$lib/components/home/Hero.svelte';
 	import Intro from '$lib/components/home/Intro.svelte';
@@ -11,19 +12,18 @@
 	import SupplierLogos from '$lib/components/home/SupplierLogos.svelte';
 	import CateringCta from '$lib/components/home/CateringCta.svelte';
 	import GallerySection from '$lib/components/home/GallerySection.svelte';
-	import Newsletter from '$lib/components/home/Newsletter.svelte';
 	import ContactSection from '$lib/components/home/ContactSection.svelte';
 	import InstagramStrip from '$lib/components/home/InstagramStrip.svelte';
 
 	/**
-	 * Homepage — the fourteen sections of §8 in order. Header (1), footer (13)
-	 * and scroll-to-top (14) come from the `(site)` layout.
+	 * Homepage — the sections of §8 in order. Header, footer and scroll-to-top
+	 * come from the `(site)` layout.
 	 *
 	 * Every section takes its content as a prop. None of them import the content
 	 * module, so moving this copy into Postgres later is a change to the load
 	 * function and nothing else.
 	 */
-	let { data, form }: PageProps = $props();
+	let { data }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -45,10 +45,8 @@
 
 <CateringCta content={home.catering} />
 
-<GallerySection intro={home.gallery} items={home.gallery.items} />
+<GallerySection intro={home.gallery} images={homeGalleryImages} />
 
-<Newsletter content={home.newsletter} result={form} />
-
-<ContactSection contact={site.contact} />
+<ContactSection contact={site.contact} surface="sand" />
 
 <InstagramStrip content={home.instagram} />

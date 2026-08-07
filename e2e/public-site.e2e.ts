@@ -10,7 +10,7 @@ import { expect, test } from '@playwright/test';
  */
 
 test('every public route responds', async ({ page }) => {
-	for (const path of ['/', '/shop', '/menu', '/about', '/gallery', '/contact']) {
+	for (const path of ['/', '/shop', '/gallery', '/contact']) {
 		const response = await page.goto(path);
 		expect(response?.status(), `${path} should be 200`).toBe(200);
 		await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -67,15 +67,37 @@ test('gated mode shows a neutral affordance, never a disabled button', async ({ 
 	await expect(page.locator('button[disabled]')).toHaveCount(0);
 });
 
-test('newsletter rejects a submission without consent', async ({ page }) => {
+test('the gallery renders real photography, not placeholder artwork', async ({ page }) => {
+	await page.goto('/gallery');
+
+	const tiles = page.locator('[data-gallery-grid] img');
+	await expect(tiles).toHaveCount(19);
+
+	// Scroll the lazy tiles into view so every one of them actually fetches.
+	await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+	await page.waitForLoadState('networkidle');
+
+	// A broken path still yields an <img>; it decodes to naturalWidth 0.
+	const widths = await tiles.evaluateAll((images) =>
+		images.map((image) => (image as HTMLImageElement).naturalWidth)
+	);
+	expect(widths.filter((width) => width === 0)).toEqual([]);
+});
+
+test('the homepage gallery shows the same images and opens the lightbox', async ({ page }) => {
 	await page.goto('/');
 
-	// Bypass the client-side `required` to prove the server enforces it too.
-	await page.locator('#newsletter-email').fill('someone@example.com');
-	await page.locator('form[action="/?/newsletter"] input[name="consent"]').evaluate((el) => {
-		(el as HTMLInputElement).removeAttribute('required');
-	});
-	await page.getByRole('button', { name: 'Sign up' }).click();
+	const tiles = page.locator('[data-gallery-grid] img');
+	await expect(tiles).toHaveCount(8);
+	await expect(tiles.first()).toHaveAttribute('src', /^\/gallery\//);
 
-	await expect(page.locator('#newsletter-status')).toContainText('consent');
+	await tiles.first().click();
+	const lightbox = page.getByRole('dialog');
+	await expect(lightbox).toBeVisible();
+
+	// Arrow keys move, Escape closes (§8.9, §10).
+	await page.keyboard.press('ArrowRight');
+	await expect(lightbox).toContainText('2 / 8');
+	await page.keyboard.press('Escape');
+	await expect(lightbox).toHaveCount(0);
 });

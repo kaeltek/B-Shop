@@ -15,7 +15,7 @@ import type { Product } from '$lib/types/catalogue';
  * exactly the thing you want indexed.
  */
 
-const STATIC_PATHS = ['/', '/shop', '/menu', '/about', '/gallery', '/contact'];
+const STATIC_PATHS = ['/', '/shop', '/gallery', '/contact'];
 const COMMERCE_PATHS = ['/cart', '/checkout'];
 
 function escapeXml(value: string): string {

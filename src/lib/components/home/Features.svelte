@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
+	import ContentImage from '$lib/components/ui/ContentImage.svelte';
 	import DecorativeAccent from '$lib/components/ui/DecorativeAccent.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import type { FeaturesContent } from '$lib/types/home';
@@ -36,7 +36,7 @@
 			</dl>
 
 			<figure class="figure">
-				<PlaceholderImage seed={content.imageSeed} alt={content.imageAlt} />
+				<ContentImage image={content.image} sizes="(min-width: 56rem) 40vw, 92vw" />
 			</figure>
 		</div>
 	</div>
@@ -101,14 +101,17 @@
 		color: var(--color-muted);
 	}
 
+	/* 4:3 rather than the 16:10 the placeholder mark sat in. The photograph is
+	   square and its subject fills the frame top to bottom; a 16:10 crop of it
+	   takes the tops off the pouches. */
 	.figure {
 		margin: 0;
 		border-radius: var(--radius-organic);
 		overflow: hidden;
-		aspect-ratio: 16 / 10;
+		aspect-ratio: 4 / 3;
 	}
 
-	.figure :global(svg) {
+	.figure :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;

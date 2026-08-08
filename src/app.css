@@ -172,7 +172,13 @@
 /* Scroll reveal — 12px rise + fade, 500ms (§7.3). The action adds
    `data-revealed` when the element enters the viewport. Under reduced motion
    the action stamps the attribute immediately and this transition is
-   neutralised by the base-layer kill-switch above. */
+   neutralised by the base-layer kill-switch above.
+
+   The attribute lands on the GROUP the action is used on, and visibility
+   cascades to the `.reveal` children inside it. That is what keeps a filtered
+   grid honest: swapping the shop's tiles for another category's replaces every
+   child node, and children that had to carry the attribute themselves would
+   come back hidden with nothing left to un-hide them. */
 @utility reveal {
 	opacity: 0;
 	transform: translateY(12px);
@@ -181,7 +187,8 @@
 		transform 500ms var(--ease-reveal);
 	transition-delay: var(--reveal-delay, 0ms);
 
-	&[data-revealed] {
+	&[data-revealed],
+	[data-revealed] & {
 		opacity: 1;
 		transform: none;
 	}

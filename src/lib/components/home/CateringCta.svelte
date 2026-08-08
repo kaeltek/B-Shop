@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
+	import ContentImage from '$lib/components/ui/ContentImage.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import type { CateringContent } from '$lib/types/home';
 
@@ -15,7 +15,7 @@
 
 <section class="catering on-dark">
 	<div class="bg" aria-hidden="true">
-		<PlaceholderImage seed={content.imageSeed} alt="" />
+		<ContentImage image={content.image} sizes="100vw" />
 	</div>
 	<div class="overlay" aria-hidden="true"></div>
 
@@ -44,16 +44,22 @@
 		z-index: -1;
 	}
 
-	.bg :global(svg) {
+	.bg :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 
 	.overlay {
-		/* Warm overlay rather than flat black — keeps the amber in the palette
-		   and gets cream text to 9:1 against the darkest point. */
-		background: linear-gradient(rgb(58 61 46 / 0.86), rgb(33 28 24 / 0.9));
+		/* Warm overlay rather than flat black — keeps the amber in the palette.
+
+		   Lighter at the top than it was against the placeholder mark: at 0.86
+		   the photograph behind it read as texture rather than as a picture.
+		   Cream text measures 5.60:1 against the lightest pixel that ends up
+		   under the heading, so it is still comfortably past AA — sampled from
+		   the render, not assumed. That number is tuned to this photograph;
+		   re-measure it if either changes. See ARCHITECTURE.md § Contrast. */
+		background: linear-gradient(rgb(58 61 46 / 0.74), rgb(33 28 24 / 0.88));
 	}
 
 	.inner {

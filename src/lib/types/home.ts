@@ -47,6 +47,40 @@ export interface HeroSlide {
 	image: HeroImage;
 }
 
+/**
+ * A supplied section photograph, in every size it ships at.
+ *
+ * `src` is the original in `static/homepage-images/` — the file the client
+ * handed over, and still the `<img>` fallback. `webpSrcset` lists the variants
+ * `scripts/encode-homepage.mjs` writes beside it, which is what every browser
+ * released this decade actually downloads. Re-run that script after replacing a
+ * source and paste its manifest over the fields below.
+ */
+export interface SectionImage {
+	src: string;
+	/** Every pre-encoded WebP variant with its intrinsic width, narrowest first. */
+	webpSrcset: string;
+	/** Empty when the image is decorative — a backdrop behind its own copy. */
+	alt: string;
+	/** Intrinsic size of `src`, so the browser can reserve space. */
+	width: number;
+	height: number;
+}
+
+/**
+ * One tile in the strip that closes the homepage (§8.12).
+ *
+ * Built from a product's own `product_images` row, so the strip shows the
+ * catalogue rather than artwork standing in for it.
+ */
+export interface StripTile {
+	/** The image row's id — stable, and unique even if two products share art. */
+	id: string;
+	src: string;
+	srcset: string;
+	alt: string;
+}
+
 export interface CounterItem {
 	value: number;
 	suffix?: string;
@@ -85,8 +119,7 @@ export interface IntroContent {
 	body: string[];
 	ctaLabel: string;
 	ctaHref: string;
-	imageSeed: string;
-	imageAlt: string;
+	image: SectionImage;
 	videoLabel: string;
 	/**
 	 * Source for the video lightbox (§8.3). The play button renders only when
@@ -103,8 +136,7 @@ export interface FeaturesContent {
 	ctaLabel: string;
 	ctaHref: string;
 	stats: StatBlock[];
-	imageSeed: string;
-	imageAlt: string;
+	image: SectionImage;
 }
 
 export interface CateringContent {
@@ -113,7 +145,7 @@ export interface CateringContent {
 	body: string;
 	ctaLabel: string;
 	ctaHref: string;
-	imageSeed: string;
+	image: SectionImage;
 }
 
 export interface SectionIntro {

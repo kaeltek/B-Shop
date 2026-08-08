@@ -19,6 +19,10 @@ export interface RevealParams {
  * hidden. `<noscript>` in app.html unhides everything when JS is unavailable,
  * so this degrades to plain visible content rather than a blank page.
  *
+ * `data-revealed` goes on the element this is used on, and the `.reveal`
+ * utility cascades visibility from there to any `.reveal` inside it. Only the
+ * per-child stagger delay is written to the children themselves.
+ *
  * One observer is shared across every use site on the page.
  */
 
@@ -35,9 +39,16 @@ function getObserver(): IntersectionObserver {
 				obs.unobserve(entry.target);
 			}
 		},
-		// Fire slightly before the element is fully in view so the motion
-		// finishes about when the reader's eye arrives.
-		{ rootMargin: '0px 0px -10% 0px', threshold: 0.05 }
+		// The margin fires this slightly before the element is fully in view, so
+		// the motion finishes about when the reader's eye arrives.
+		//
+		// No ratio threshold, deliberately. `intersectionRatio` is measured
+		// against the element's own size, so an element several times taller than
+		// the viewport can never reach even a few percent however far it is
+		// scrolled — the shop grid is exactly that, and a threshold of 0.05 left
+		// the whole catalogue at opacity 0 on any screen where the grid ran long.
+		// Any part of the element crossing the line is the trigger.
+		{ rootMargin: '0px 0px -10% 0px' }
 	);
 	return observer;
 }
@@ -51,29 +62,42 @@ export const reveal: Action<HTMLElement, RevealParams | undefined> = (node, para
 		const delay = p?.delay ?? 0;
 		const stagger = p?.stagger ?? 0;
 
-		const children = stagger
-			? Array.from(node.querySelectorAll<HTMLElement>(':scope > .reveal'))
-			: [];
-		const targets = children.length > 0 ? children : [node];
+		const show = (animate: boolean) => {
+			// Read at reveal time, not at setup: a filtered grid replaces its
+			// children between the two, and staggering a list captured earlier
+			// would be staggering nodes that are no longer in the document.
+			const children = Array.from(node.querySelectorAll<HTMLElement>(':scope > .reveal'));
+			const staggered = children.length > 0 ? children : [node];
 
-		targets.forEach((el, i) => {
-			const total = delay + i * stagger;
-			if (total > 0) el.style.setProperty('--reveal-delay', `${total}ms`);
-		});
+			for (const [i, el] of staggered.entries()) {
+				const total = animate ? delay + i * stagger : 0;
+				if (total > 0) el.style.setProperty('--reveal-delay', `${total}ms`);
+				else el.style.removeProperty('--reveal-delay');
+			}
 
-		const show = () => {
-			for (const el of targets) el.setAttribute('data-revealed', '');
+			// One attribute, on the group. Children read their visibility off it
+			// through CSS, so any that arrive later — a category change, a sort —
+			// are visible the moment they mount.
+			node.setAttribute('data-revealed', '');
 		};
 
 		// Reduced motion: skip observation entirely and render final state.
 		if (prefersReducedMotion()) {
-			for (const el of targets) el.style.removeProperty('--reveal-delay');
-			show();
+			show(false);
 			cleanup = undefined;
 			return;
 		}
 
-		registry.set(node, show);
+		// Already on screen, or already scrolled past — the observer reports
+		// neither, since it only ever fires on a crossing that is still to come.
+		// Content that the reader can see must never be waiting on one.
+		if (node.getBoundingClientRect().top < window.innerHeight) {
+			show(true);
+			cleanup = undefined;
+			return;
+		}
+
+		registry.set(node, () => show(true));
 		getObserver().observe(node);
 
 		cleanup = () => {

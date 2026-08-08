@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Eyebrow from '$lib/components/ui/Eyebrow.svelte';
-	import PlaceholderImage from '$lib/components/ui/PlaceholderImage.svelte';
+	import ContentImage from '$lib/components/ui/ContentImage.svelte';
 	import DecorativeAccent from '$lib/components/ui/DecorativeAccent.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import type { IntroContent } from '$lib/types/home';
@@ -29,7 +29,7 @@
 		</div>
 
 		<figure class="portrait reveal">
-			<PlaceholderImage seed={content.imageSeed} alt={content.imageAlt} />
+			<ContentImage image={content.image} sizes="(min-width: 56rem) 45vw, 92vw" />
 			{#if content.videoUrl}
 				<!-- Rendered only when there is something to play (§8.3). -->
 				<a class="play" href={content.videoUrl}>
@@ -83,7 +83,7 @@
 		aspect-ratio: 4 / 5;
 	}
 
-	.portrait :global(svg) {
+	.portrait :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;

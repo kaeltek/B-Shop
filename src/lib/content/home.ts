@@ -65,8 +65,14 @@ export const home: HomeContent = {
 		],
 		ctaLabel: 'See the gallery',
 		ctaHref: '/gallery',
-		imageSeed: 'intro-portrait',
-		imageAlt: 'A cook turning something over the coals',
+		image: {
+			src: '/homepage-images/introimage.png',
+			webpSrcset:
+				'/homepage-images/introimage-480.webp 480w, /homepage-images/introimage-768.webp 768w, /homepage-images/introimage-1024.webp 1024w, /homepage-images/introimage-1254.webp 1254w',
+			alt: 'A jar of Tom Brown cereal blend, a pouch of plantain chips and a red window pouch of snacks on a wooden board',
+			width: 1254,
+			height: 1254
+		},
 		videoLabel: 'Watch: a morning in the kitchen'
 	},
 
@@ -85,7 +91,7 @@ export const home: HomeContent = {
 
 	features: {
 		eyebrow: 'We Are Available Whenever You Need Us',
-		heading: 'Anazing Service, longer relationships',
+		heading: 'Amazing Service, longer relationships',
 		body: 'At the heart of everything we do is a commitment to quality, affordability, and customer satisfaction. We take pride in offering a wide range of products that cater to the needs of our customers, ensuring that they have access to the best options available.',
 		ctaLabel: 'Browse the shop',
 		ctaHref: '/shop',
@@ -93,8 +99,14 @@ export const home: HomeContent = {
 			{ value: 'Nourishing', label: 'Premium & Natural Ingredients' },
 			{ value: 'Top Quality', label: 'Quality guaranteed' }
 		],
-		imageSeed: 'features-produce',
-		imageAlt: 'A crate of produce delivered that morning'
+		image: {
+			src: '/homepage-images/packmergedimage.png',
+			webpSrcset:
+				'/homepage-images/packmergedimage-480.webp 480w, /homepage-images/packmergedimage-768.webp 768w, /homepage-images/packmergedimage-1024.webp 1024w, /homepage-images/packmergedimage-1254.webp 1254w',
+			alt: 'A silver stand-up pouch, a kraft paper pouch and a glass jar with a gold lid on a wooden board',
+			width: 1254,
+			height: 1254
+		}
 	},
 
 	suppliers: [
@@ -112,7 +124,16 @@ export const home: HomeContent = {
 		body: 'Long tables, weddings, wakes and the odd birthday. We cook on site, over coals, for anywhere between twenty and two hundred.',
 		ctaLabel: 'Talk to us about catering',
 		ctaHref: '/contact',
-		imageSeed: 'catering-fire'
+		// Decorative: it sits behind the overlay and the copy above describes the
+		// section on its own, so an alt here would only be read out twice.
+		image: {
+			src: '/homepage-images/banner1.png',
+			webpSrcset:
+				'/homepage-images/banner1-480.webp 480w, /homepage-images/banner1-768.webp 768w, /homepage-images/banner1-1024.webp 1024w, /homepage-images/banner1-1440.webp 1440w, /homepage-images/banner1-1774.webp 1774w',
+			alt: '',
+			width: 1774,
+			height: 887
+		}
 	},
 
 	// Copy only. The photographs live in `$lib/content/gallery`, shared with the
@@ -125,7 +146,7 @@ export const home: HomeContent = {
 	instagram: {
 		eyebrow: 'Day to day',
 		heading: 'Follow along',
-		handle: '@oliveandember',
+		handle: '@b-shop',
 		items: [
 			{ seed: 'ig-1', alt: 'A loaf pulled from the oven' },
 			{ seed: 'ig-2', alt: 'Coffee being weighed out' },

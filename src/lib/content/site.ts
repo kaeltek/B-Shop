@@ -39,7 +39,7 @@ export const site: SiteContent = {
 		{
 			heading: 'Visit',
 			links: [
-				{ label: 'Book a Table', href: '/contact' },
+				{ label: 'Order', href: '/contact' },
 				{ label: 'Private Events', href: '/contact' },
 				{ label: 'Catering', href: '/contact' }
 			]

@@ -15,16 +15,16 @@ export const shopPage = {
 		eyebrow: 'The shop',
 		title: 'Everything we sell to take home',
 		standfirst:
-			'Snacks, breakfast foods and cereals for the cupboard, and the pouches, bags and containers we supply to businesses. Filter by category, or sort the lot.'
+			'Snacks, breakfast foods and cereals for the cupboard, and the pouches, bags and containers we supply to businesses. Filter by category.'
 	} satisfies PageIntro
 };
 
 export const galleryPage = {
 	intro: {
 		eyebrow: 'The range',
-		title: 'Everything we stock, photographed',
+		title: 'Explore Our Range, Of Products and Packaging',
 		standfirst:
-			'Pouches, jars, sacks and the provisions that go in them — the packaging range and the breakfast foods, snacks and cereals, shot as they arrive. Select any image to enlarge it, then use the arrow keys to move between them.'
+			'Pouches, jars, sacks and the provisions that go in them — the packaging range and the breakfast foods, snacks and cereals.'
 	} satisfies PageIntro
 };
 

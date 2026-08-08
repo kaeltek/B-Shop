@@ -199,7 +199,14 @@ it could not expose or alter a row.
 | `accent-soft` on `olive`        | 4.94:1  | ✅           |
 | `ink` on `accent` (CTA)         | 5.59:1  | ✅           |
 | `cream` on `olive`              | 9.98:1  | ✅           |
+| `cream` on the catering banner  | 5.60:1  | ✅           |
 | ~~`accent` as text on `cream`~~ | 2.71:1  | ❌ never use |
+
+The catering row is the only one measured against a photograph rather than a
+flat colour: the overlay in `CateringCta.svelte` sits over `banner1.png`, so the
+ratio was sampled from the lightest rendered pixel behind the heading (desktop
+1440×900; mobile measures 5.77:1). Re-measure it if either the overlay or that
+photograph changes — the gradient is tuned to that image, not to a token.
 
 Surfaces switch between the text-safe variants through one inherited custom
 property, `--accent-text`, which `.on-dark` re-points. Components never need to

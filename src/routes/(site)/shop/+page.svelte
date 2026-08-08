@@ -168,6 +168,9 @@
 	}
 
 	.chip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		border: 1px solid rgb(33 28 24 / 0.16);
 		border-radius: var(--radius-pill);
 		padding: 0.5rem 1.1rem;
@@ -250,6 +253,37 @@
 
 	.tail {
 		height: clamp(5rem, 10vw, 9rem);
+	}
+
+	/* Phones. The filter bar is the shop's primary navigation, so it stacks
+	   rather than competing with the sort control for one row, and every chip
+	   becomes a full 44px target. The header also gives back some of its
+	   generous desktop padding, which is what was pushing the categories and
+	   the first row of products so far down the page. */
+	@media (width < 40rem) {
+		.head {
+			padding-top: 3rem;
+			padding-bottom: 1.5rem;
+		}
+
+		.filters {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 1rem;
+		}
+
+		.chip {
+			min-height: 2.75rem;
+		}
+
+		.chip.small {
+			min-height: 2.25rem;
+		}
+
+		.sort select {
+			flex: 1;
+			min-height: 2.75rem;
+		}
 	}
 
 	@media (width >= 37.5rem) {

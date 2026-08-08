@@ -49,4 +49,4 @@
 
 <ContactSection contact={site.contact} surface="sand" />
 
-<InstagramStrip content={home.instagram} />
+<InstagramStrip content={home.instagram} tiles={data.packagingTiles} />
